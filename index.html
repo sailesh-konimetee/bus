@@ -1,0 +1,1212 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CampusTrack — Student Bus Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+/* ─── Design Tokens ─── */
+:root {
+  --bg:       #080c14;
+  --surface:  #0d1320;
+  --card:     #111927;
+  --border:   #1e2d42;
+  --accent:   #00d4aa;
+  --accent2:  #6366f1;
+  --amber:    #f59e0b;
+  --text:     #e8edf5;
+  --muted:    #6b7a94;
+  --danger:   #ef4444;
+  --success:  #22c55e;
+  --font:     'Space Grotesk', sans-serif;
+  --display:  'Syne', sans-serif;
+  --r:        12px;
+  --r-lg:     18px;
+  --shadow:   0 8px 32px rgba(0,0,0,0.5);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ═══════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════ */
+#login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.login-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(0,212,170,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 85% 80%, rgba(99,102,241,0.10) 0%, transparent 60%);
+}
+
+.login-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(30,45,66,0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30,45,66,0.3) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.login-box {
+  position: relative;
+  width: 420px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 48px 40px;
+  box-shadow: var(--shadow), 0 0 0 1px rgba(0,212,170,0.05);
+  animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.login-logo .bus-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: grid; place-items: center;
+  font-size: 22px;
+}
+
+.login-logo .brand {
+  font-family: var(--display);
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+.login-logo .brand span { color: var(--accent); }
+
+.login-headline {
+  font-family: var(--display);
+  font-size: 28px;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.login-sub {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+.field { margin-bottom: 20px; }
+
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.field input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,212,170,0.12);
+}
+
+.login-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 24px;
+  padding: 10px 14px;
+  background: rgba(0,212,170,0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(0,212,170,0.15);
+}
+
+.login-hint strong { color: var(--accent); }
+
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--accent), #00b894);
+  border: none;
+  border-radius: var(--r);
+  color: #080c14;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+.btn-login:hover { opacity: 0.9; }
+.btn-login:active { transform: scale(0.98); }
+
+.login-error {
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #fca5a5;
+  display: none;
+}
+
+/* ═══════════════════════════════════
+   MAIN APP
+═══════════════════════════════════ */
+#app-page { display: none; flex-direction: column; min-height: 100vh; }
+
+/* ─── Header ─── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(12px);
+}
+
+.header-logo {
+  display: flex; align-items: center; gap: 10px;
+}
+
+.header-logo .bus-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-size: 18px;
+}
+
+.header-logo .brand {
+  font-family: var(--display);
+  font-size: 18px;
+  letter-spacing: -0.3px;
+}
+
+.header-logo .brand span { color: var(--accent); }
+
+.header-nav {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.nav-btn {
+  padding: 7px 18px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.nav-btn.active {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.nav-btn:hover:not(.active) { color: var(--text); }
+
+.header-right {
+  display: flex; align-items: center; gap: 16px;
+}
+
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.live-dot {
+  width: 8px; height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+.avatar {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logout-btn {
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.logout-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+/* ─── Layout ─── */
+.content { flex: 1; padding: 24px 28px; }
+
+.view { display: none; }
+.view.active { display: block; }
+
+/* ─── Dashboard View ─── */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  height: calc(100vh - 64px - 48px);
+}
+
+/* Map */
+.map-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.map-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.map-meta { font-size: 12px; color: var(--muted); }
+
+#map { flex: 1; min-height: 400px; }
+
+/* Custom map dark theme */
+.leaflet-container { background: #0d1320 !important; }
+.leaflet-tile { filter: brightness(0.75) saturate(0.7) hue-rotate(195deg); }
+
+/* Bus Sidebar */
+.bus-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.sidebar-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.bus-count {
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.bus-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.bus-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 99px;
+  background: var(--bus-color, var(--accent));
+}
+
+.bus-card:hover { border-color: var(--bus-color, var(--accent)); transform: translateX(2px); }
+
+.bus-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.bus-id {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bus-color, var(--accent));
+}
+
+.bus-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+.status-badge.active  { background: rgba(34,197,94,0.15);  color: var(--success); }
+.status-badge.delayed { background: rgba(245,158,11,0.15); color: var(--amber); }
+
+.bus-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.bus-stat {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.bus-stat .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.bus-stat .value { font-size: 15px; font-weight: 700; margin-top: 2px; }
+
+.occupancy-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.occupancy-fill {
+  height: 100%;
+  background: var(--bus-color, var(--accent));
+  border-radius: 99px;
+  transition: width 0.8s ease;
+}
+
+.bus-stops {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.stop-chip {
+  font-size: 10px;
+  padding: 3px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  color: var(--muted);
+}
+
+.stop-chip.next {
+  background: rgba(0,212,170,0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.my-bus-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: var(--bg);
+  border-radius: 99px;
+}
+
+/* ─── Profile View ─── */
+.profile-layout {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  padding-top: 8px;
+}
+
+.profile-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 32px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-card::before {
+  content: '';
+  position: absolute;
+  top: -40px; left: -40px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(0,212,170,0.12), transparent 70%);
+  pointer-events: none;
+}
+
+.profile-avatar-lg {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 auto 16px;
+  border: 3px solid var(--border);
+}
+
+.profile-name {
+  font-family: var(--display);
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.profile-roll {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 20px;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+
+.profile-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+.profile-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.meta-icon {
+  width: 32px; height: 32px;
+  background: var(--surface);
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.meta-label { font-size: 11px; color: var(--muted); }
+.meta-value { font-size: 14px; font-weight: 500; }
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 24px;
+}
+
+.detail-section h3 {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.detail-item .item-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.detail-item .item-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.my-bus-section {
+  background: linear-gradient(135deg, rgba(0,212,170,0.06), rgba(99,102,241,0.06));
+  border: 1px solid rgba(0,212,170,0.2);
+}
+
+.bus-assignment {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+}
+
+.bus-dot {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.bus-assignment-info .bus-route-name { font-size: 15px; font-weight: 600; }
+.bus-assignment-info .bus-route-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.profile-action-btns {
+  display: flex; gap: 10px; margin-top: 20px;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─── Notifications ─── */
+.toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r);
+  padding: 14px 18px;
+  font-size: 14px;
+  box-shadow: var(--shadow);
+  z-index: 9999;
+  transform: translateX(120%);
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  max-width: 300px;
+}
+
+.toast.show { transform: translateX(0); }
+
+/* Map popup */
+.leaflet-popup-content-wrapper {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r) !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.leaflet-popup-tip { background: var(--card) !important; }
+
+.popup-content h3 { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+.popup-content p  { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.popup-content strong { color: var(--text); }
+
+/* Spinner */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(0,212,170,0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .dashboard-layout { grid-template-columns: 1fr; }
+  .profile-layout   { grid-template-columns: 1fr; }
+  .header-nav       { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="login-page">
+  <div class="login-bg"></div>
+  <div class="login-grid"></div>
+
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="bus-icon">🚌</div>
+      <div class="brand">Campus<span>Track</span></div>
+    </div>
+
+    <h1 class="login-headline">Welcome back,<br/>Student.</h1>
+    <p class="login-sub">Sign in to track your bus in real-time.</p>
+
+    <div class="field">
+      <label>Roll Number</label>
+      <input type="text" id="roll-input" placeholder="e.g. 21CS045" autocomplete="username" />
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="pass-input" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+
+    <div class="login-hint">
+      Demo credentials: <strong>21CS045</strong> / <strong>password123</strong>
+    </div>
+
+    <button class="btn-login" id="login-btn" onclick="doLogin()">
+      <span id="login-btn-text">Sign In →</span>
+    </button>
+
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app-page">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-logo">
+      <div class="bus-icon">🚌</div>
+      <div class="brand">Campus<span>Track</span></div>
+    </div>
+
+    <nav class="header-nav">
+      <button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">
+        🗺 Live Map
+      </button>
+      <button class="nav-btn" id="nav-profile" onclick="switchView('profile')">
+        👤 My Profile
+      </button>
+    </nav>
+
+    <div class="header-right">
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        LIVE
+      </div>
+      <div class="avatar" id="header-avatar" onclick="switchView('profile')" title="My Profile"></div>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- ── Dashboard ── -->
+    <div class="view active" id="view-dashboard">
+      <div class="dashboard-layout">
+
+        <!-- Map -->
+        <div class="map-card">
+          <div class="map-header">
+            <h2>🗺 Live Bus Map</h2>
+            <div class="map-meta" id="map-last-update">Updating…</div>
+          </div>
+          <div id="map"></div>
+        </div>
+
+        <!-- Bus Sidebar -->
+        <div class="bus-sidebar">
+          <div class="sidebar-title">
+            Active Buses
+            <span class="bus-count" id="active-count">0</span>
+          </div>
+          <div id="bus-list">
+            <div style="color:var(--muted);font-size:13px;padding:12px 0;">Loading buses…</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Profile ── -->
+    <div class="view" id="view-profile">
+      <div class="profile-layout">
+
+        <!-- Left card -->
+        <div class="profile-card">
+          <div class="profile-avatar-lg" id="profile-avatar-lg"></div>
+          <div class="profile-name" id="profile-name">—</div>
+          <div class="profile-roll" id="profile-roll">—</div>
+
+          <hr class="profile-divider" />
+
+          <div class="profile-meta-row">
+            <div class="meta-icon">📧</div>
+            <div>
+              <div class="meta-label">Email</div>
+              <div class="meta-value" id="profile-email">—</div>
+            </div>
+          </div>
+
+          <div class="profile-meta-row">
+            <div class="meta-icon">📱</div>
+            <div>
+              <div class="meta-label">Phone</div>
+              <div class="meta-value" id="profile-phone">—</div>
+            </div>
+          </div>
+
+          <div class="profile-meta-row">
+            <div class="meta-icon">📍</div>
+            <div>
+              <div class="meta-label">Home Place</div>
+              <div class="meta-value" id="profile-place">—</div>
+            </div>
+          </div>
+
+          <div class="profile-action-btns">
+            <button class="btn-secondary" onclick="switchView('dashboard')">🗺 Track My Bus</button>
+          </div>
+        </div>
+
+        <!-- Right details -->
+        <div class="profile-details">
+
+          <!-- Academic Info -->
+          <div class="detail-section">
+            <h3>📚 Academic Info</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <div class="item-label">Full Name</div>
+                <div class="item-value" id="d-name">—</div>
+              </div>
+              <div class="detail-item">
+                <div class="item-label">Roll Number</div>
+                <div class="item-value" id="d-roll">—</div>
+              </div>
+              <div class="detail-item">
+                <div class="item-label">Year</div>
+                <div class="item-value" id="d-year">—</div>
+              </div>
+              <div class="detail-item">
+                <div class="item-label">Branch</div>
+                <div class="item-value" id="d-branch">—</div>
+              </div>
+              <div class="detail-item">
+                <div class="item-label">Student ID</div>
+                <div class="item-value" id="d-id">—</div>
+              </div>
+              <div class="detail-item">
+                <div class="item-label">Home Place</div>
+                <div class="item-value" id="d-place">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bus Assignment -->
+          <div class="detail-section my-bus-section">
+            <h3>🚌 My Bus Assignment</h3>
+            <div class="bus-assignment" id="my-bus-assignment">
+              <div class="bus-dot" id="my-bus-dot">🚌</div>
+              <div class="bus-assignment-info">
+                <div class="bus-route-name" id="my-bus-name">Loading…</div>
+                <div class="bus-route-sub" id="my-bus-sub">—</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ──────────────────────────────────────
+// Config — point this at your backend
+// ──────────────────────────────────────
+const API = 'http://localhost:3001/api';
+
+// ── State
+let currentStudent = null;
+let map = null;
+let markers = {};
+let busData = [];
+let refreshInterval = null;
+
+// ──────────────────────────────────────
+// LOGIN
+// ──────────────────────────────────────
+document.getElementById('pass-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+async function doLogin() {
+  const rollNo    = document.getElementById('roll-input').value.trim();
+  const password  = document.getElementById('pass-input').value;
+  const errEl     = document.getElementById('login-error');
+  const btnText   = document.getElementById('login-btn-text');
+
+  errEl.style.display = 'none';
+  btnText.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const res  = await fetch(`${API}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rollNo, password })
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+
+    currentStudent = data.student;
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('app-page').style.display   = 'flex';
+    initApp();
+
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btnText.textContent = 'Sign In →';
+  }
+}
+
+// ──────────────────────────────────────
+// INIT APP
+// ──────────────────────────────────────
+function initApp() {
+  // Header avatar
+  document.getElementById('header-avatar').textContent = currentStudent.avatar;
+  fillProfile();
+  initMap();
+  fetchBuses();
+  refreshInterval = setInterval(fetchBuses, 5000);
+  showToast('Signed in! Tracking buses live 🚌');
+}
+
+// ──────────────────────────────────────
+// MAP
+// ──────────────────────────────────────
+function initMap() {
+  map = L.map('map', { zoomControl: false }).setView([12.95, 80.14], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 18
+  }).addTo(map);
+
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  // College marker
+  L.marker([12.8406, 80.1534], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="
+        width:36px;height:36px;
+        background:linear-gradient(135deg,#6366f1,#00d4aa);
+        border-radius:50%;border:2px solid white;
+        display:grid;place-items:center;font-size:16px;
+        box-shadow:0 4px 12px rgba(0,0,0,0.4)
+      ">🏫</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    })
+  }).addTo(map).bindPopup('<div class="popup-content"><h3>College Campus</h3><p>Main pickup/drop point</p></div>');
+}
+
+function getBusIcon(color, isMyBus) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      position:relative;
+      width:40px;height:40px;
+      background:${color};
+      border-radius:10px;
+      border:${isMyBus ? '3px solid white' : '2px solid rgba(255,255,255,0.3)'};
+      display:grid;place-items:center;
+      font-size:20px;
+      box-shadow:0 4px 16px rgba(0,0,0,0.5);
+      animation: ${isMyBus ? 'bounce 1s ease infinite' : 'none'};
+    ">🚌${isMyBus ? '<div style="position:absolute;top:-6px;right:-6px;width:14px;height:14px;background:#22c55e;border-radius:50%;border:2px solid white;animation:pulse 1.5s ease infinite"></div>' : ''}</div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
+}
+
+// ──────────────────────────────────────
+// FETCH BUSES
+// ──────────────────────────────────────
+async function fetchBuses() {
+  try {
+    const res  = await fetch(`${API}/buses`);
+    const data = await res.json();
+    busData = data.buses;
+    renderBusList(busData);
+    updateMapMarkers(busData);
+    document.getElementById('map-last-update').textContent =
+      'Updated ' + new Date(data.timestamp).toLocaleTimeString();
+    document.getElementById('active-count').textContent =
+      busData.filter(b => b.status === 'active').length;
+    updateMyBusInfo(busData);
+  } catch {
+    document.getElementById('map-last-update').textContent = 'Connection error';
+  }
+}
+
+function renderBusList(buses) {
+  const el = document.getElementById('bus-list');
+  el.innerHTML = buses.map(bus => {
+    const isMyBus = currentStudent && bus.id === currentStudent.busId;
+    const occ = Math.round((bus.occupancy / bus.capacity) * 100);
+    return `
+    <div class="bus-card" style="--bus-color:${bus.color}" onclick="focusBus('${bus.id}')">
+      ${isMyBus ? '<div class="my-bus-tag">MY BUS</div>' : ''}
+      <div class="bus-card-header">
+        <div>
+          <div class="bus-id">${bus.id}</div>
+          <div class="bus-name">${bus.name.split('–')[1]?.trim() || bus.name}</div>
+        </div>
+        <div class="status-badge ${bus.status}">${bus.status.toUpperCase()}</div>
+      </div>
+      <div class="bus-stats">
+        <div class="bus-stat">
+          <div class="label">Speed</div>
+          <div class="value" style="color:${bus.color}">${bus.speed} km/h</div>
+        </div>
+        <div class="bus-stat">
+          <div class="label">ETA</div>
+          <div class="value">${bus.eta}</div>
+        </div>
+      </div>
+      <div class="bus-stat" style="margin-bottom:10px">
+        <div class="label">Occupancy ${bus.occupancy}/${bus.capacity}</div>
+        <div class="occupancy-bar" style="margin-top:6px">
+          <div class="occupancy-fill" style="width:${occ}%;background:${bus.color}"></div>
+        </div>
+      </div>
+      <div class="bus-stops">
+        ${bus.stops.map(s => `<span class="stop-chip ${s === bus.nextStop ? 'next' : ''}">${s}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateMapMarkers(buses) {
+  buses.forEach(bus => {
+    const isMyBus = currentStudent && bus.id === currentStudent.busId;
+    const icon = getBusIcon(bus.color, isMyBus);
+
+    if (markers[bus.id]) {
+      markers[bus.id].setLatLng([bus.lat, bus.lng]).setIcon(icon);
+      markers[bus.id].getPopup().setContent(buildPopup(bus));
+    } else {
+      const m = L.marker([bus.lat, bus.lng], { icon })
+        .addTo(map)
+        .bindPopup(buildPopup(bus), { maxWidth: 240 });
+      markers[bus.id] = m;
+    }
+  });
+}
+
+function buildPopup(bus) {
+  return `<div class="popup-content">
+    <h3>${bus.id} — ${bus.name.split('–')[1]?.trim() || bus.name}</h3>
+    <p>
+      <strong>Status:</strong> ${bus.status}<br/>
+      <strong>Speed:</strong> ${bus.speed} km/h<br/>
+      <strong>Next stop:</strong> ${bus.nextStop}<br/>
+      <strong>ETA:</strong> ${bus.eta}<br/>
+      <strong>Occupancy:</strong> ${bus.occupancy}/${bus.capacity}
+    </p>
+  </div>`;
+}
+
+function focusBus(id) {
+  const bus = busData.find(b => b.id === id);
+  if (!bus || !map) return;
+  map.flyTo([bus.lat, bus.lng], 14, { duration: 1 });
+  markers[id]?.openPopup();
+  switchView('dashboard');
+}
+
+// ──────────────────────────────────────
+// PROFILE
+// ──────────────────────────────────────
+function fillProfile() {
+  const s = currentStudent;
+  if (!s) return;
+
+  document.getElementById('profile-avatar-lg').textContent = s.avatar;
+  document.getElementById('profile-name').textContent      = s.name;
+  document.getElementById('profile-roll').textContent      = s.rollNo;
+  document.getElementById('profile-email').textContent     = s.email;
+  document.getElementById('profile-phone').textContent     = s.phone;
+  document.getElementById('profile-place').textContent     = s.place;
+
+  document.getElementById('d-name').textContent   = s.name;
+  document.getElementById('d-roll').textContent   = s.rollNo;
+  document.getElementById('d-year').textContent   = s.year;
+  document.getElementById('d-branch').textContent = s.branch;
+  document.getElementById('d-id').textContent     = s.id;
+  document.getElementById('d-place').textContent  = s.place;
+}
+
+function updateMyBusInfo(buses) {
+  if (!currentStudent) return;
+  const bus = buses.find(b => b.id === currentStudent.busId);
+  if (!bus) return;
+
+  document.getElementById('my-bus-dot').style.background = bus.color;
+  document.getElementById('my-bus-name').textContent     = bus.name;
+  document.getElementById('my-bus-sub').textContent      =
+    `Next stop: ${bus.nextStop} · ETA ${bus.eta} · ${bus.speed} km/h`;
+}
+
+// ──────────────────────────────────────
+// NAVIGATION
+// ──────────────────────────────────────
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`view-${name}`)?.classList.add('active');
+  document.getElementById(`nav-${name}`)?.classList.add('active');
+
+  if (name === 'dashboard' && map) {
+    setTimeout(() => map.invalidateSize(), 100);
+  }
+}
+
+// ──────────────────────────────────────
+// LOGOUT
+// ──────────────────────────────────────
+function doLogout() {
+  clearInterval(refreshInterval);
+  currentStudent = null;
+  document.getElementById('app-page').style.display   = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('roll-input').value = '';
+  document.getElementById('pass-input').value = '';
+  Object.values(markers).forEach(m => m.remove());
+  markers = {};
+  if (map) { map.remove(); map = null; }
+}
+
+// ──────────────────────────────────────
+// TOAST
+// ──────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
