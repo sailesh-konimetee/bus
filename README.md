@@ -50,25 +50,25 @@ open frontend/index.html
 
 ## Features
 
-### 🔐 Login Page
+### Login Page
 - Roll number + password authentication
 - Animated dark-themed UI with grid background
 - Error handling with friendly messages
 
-### 🗺 Live Map (Dashboard)
+### Live Map (Dashboard)
 - OpenStreetMap via Leaflet.js
 - 3 buses with animated markers updating every 5 seconds
 - Your assigned bus highlighted with green pulse indicator
 - Click any bus marker for popup details
 - College campus marker
 
-### 🚌 Bus Sidebar
+### Bus Sidebar
 - Live status (Active / Delayed)
 - Speed, ETA, occupancy bar
 - Stop chips showing route with current stop highlighted
 - "MY BUS" tag on your assigned bus
 
-### 👤 Student Profile
+### Student Profile
 - Full student information (name, roll no, year, branch, place)
 - Contact details (email, phone)
 - Bus assignment section with live ETA
